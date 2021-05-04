@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-# class CropConfig(AppConfig):
-#     name = 'crop'
+class CropConfig(AppConfig):
+    name = 'crop'

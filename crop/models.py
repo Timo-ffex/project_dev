@@ -1,7 +1,38 @@
 from django.db import models
-from field.models import Field
+from field.models import Field, year_choices, current_year
 from django.contrib.auth.models import Group, User
 import datetime
+
+
+
+class Crop(models.Model):
+    field = models.ForeignKey(Field, on_delete=models.CASCADE)
+    crop_name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ('field', 'crop_name',)
+
+    def __str__(self):
+        return self.crop_name 
+
+
+class CropSeason(models.Model):
+    field = models.ForeignKey(Field, on_delete=models.CASCADE)
+    crop_name = models.ForeignKey(Crop, on_delete=models.CASCADE)
+    crop_description = models.TextField()
+    sowing_date = models.DateField(default=datetime.date.today, null=False)
+    season = models.IntegerField(('year'), choices=year_choices(), default=current_year)
+
+    def __str__(self):
+        return self.season
+
+
+
+class CropRotation(models.Model):
+    field = models.ForeignKey(Field, on_delete=models.CASCADE)
+    crop_name = models.ForeignKey(Crop, on_delete=models.CASCADE)
+    season = models.ForeignKey(CropSeason, on_delete=models.CASCADE)
+    sowing_date = models.DateField(default=datetime.date.today)
 
 
 # class Activity(models.Model):

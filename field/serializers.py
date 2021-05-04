@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Field, Season, Activity
+from .models import Field, Activity, AssignFarmActivity
 
 
 class FieldSerializer(serializers.ModelSerializer):
@@ -11,11 +11,6 @@ class FieldSerializer(serializers.ModelSerializer):
         #         'starting_latitude', 'ending_longitude', 'ending_latitude', )
     
 
-class SeasonSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Season
-        fields = "__all__"
-
 
 class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,7 +18,13 @@ class ActivitySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CoordinateSerializer(serializers.ModelSerializer):
+class AssignFarmActivitySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Field
-        fields = '__all__'
+        model = AssignFarmActivity
+        fields = "__all__"
+
+
+# class CoordinateSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Field
+#         fields = '__all__'

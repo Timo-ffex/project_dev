@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     # Local django applications
     'registrations',
     'field', 
+    'crop',
 ]
 
 
@@ -100,7 +101,7 @@ DATABASES = {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'gis_db',
         'USER': 'postgres',
-        'PASSWORD': 'sql67905355',
+        'PASSWORD': open(r'C:\Users\USER PC\Documents\386konsult\Djanjo_Dev\pass.txt', 'r').read(),
         'HOST': 'localhost',
         'PORT': '5432'
     }

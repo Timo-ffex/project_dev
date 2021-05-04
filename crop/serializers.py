@@ -1,14 +1,24 @@
 from rest_framework import serializers
-from .models import Field, Season, Activity
+from .models import Crop, CropSeason, CropRotation
 
 
-# class ActivitySerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Activity
-#         fields = "__all__"
+class CropSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Crop
+        fields = '__all__'
+        # fields = ('id', 'user', 'field_name', 'group_name', 'starting_longitude', 
+        #         'starting_latitude', 'ending_longitude', 'ending_latitude', )
+    
 
 
-# class SeasonSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Season
-#         fields = "__all__"
+class CropSeasonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CropSeason
+        fields = "__all__"
+
+
+class CropRotationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CropRotation
+        fields = "__all__"
