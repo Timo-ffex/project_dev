@@ -1,0 +1,72 @@
+# DROP TABLE
+red_user = "DROP TABLE IF EXISTS users"
+
+# CREATE TABLE
+reg_user = """
+CREATE TABLE IF NOT EXISTS users(
+user_id SERIAL PRIMARY KEY,
+first_name VARCHAR, 
+last_name VARCHAR, 
+address VARCHAR, 
+year int, 
+);"""
+
+python ingest_data.py
+user = 'postgres'
+port = '5432'
+host = 'localhost'
+password = "****"
+db = 'test_db'
+
+
+
+
+
+
+
+SELECT * FROM yellow_taxi_data LIMIT 5;
+
+SELECT count(*) FROM yellow_taxi_data
+WHERE tpep_pickup_datetime
+between '2021-01-15' and '2021-01-15 23:59:59';
+
+SELECT 
+    EXTRACT(MONTH FROM tpep_pickup_datetime) as trip_month,
+    EXTRACT(DAY FROM tpep_pickup_datetime) as trip_day, 
+    tip_amount
+FROM yellow_taxi_data
+WHERE tpep_pickup_datetime
+between '2021-01-01' and '2021-01-31'
+GROUP BY trip_month, trip_day, tip_amount
+ORDER by tip_amount DESC;
+
+
+SELECT * FROM lookup_table LIMIT 5;
+
+SELECT 
+    l."Zone" as use,
+--     l."Borough" as use,
+    "PULocationID",
+    "DOLocationID",
+    count("DOLocationID") as d_count
+FROM yellow_taxi_data y
+JOIN lookup_table l 
+ON l."LocationID" = y."DOLocationID"
+WHERE tpep_pickup_datetime
+between '2021-01-14' and '2021-01-14 23:59:59' and "PULocationID" = 43
+GROUP BY use, "PULocationID", "DOLocationID"
+ORDER by d_count DESC;
+
+SELECT 
+    u."Zone" as pick_up,
+    d."Zone" as drop_off,
+    AVG(total_amount) as avg_amount
+FROM yellow_taxi_data y
+JOIN lookup_table u
+ON u."LocationID" = y."PULocationID"
+JOIN lookup_table d
+ON d."LocationID" = y."DOLocationID"
+GROUP BY "pick_up", "drop_off"
+ORDER by avg_amount DESC;;
+
+

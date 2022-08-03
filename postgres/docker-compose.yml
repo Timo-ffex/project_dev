@@ -1,0 +1,21 @@
+services:
+  pgdatabase:
+    # image: postgres:14.4-alpine3.16
+    image: ${POSTGRES_IMAGE_ALPINE}
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=my_taxi
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data:rw
+    ports:
+      - "5434:5432"
+
+  pgadmin:
+    image: ${PGADMIN}
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin
+      - PGADMIN_DEFAULT_PASSWORD=root
+    ports:
+      - "8080:80"
+
