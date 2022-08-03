@@ -145,8 +145,8 @@ def download_and_uplod_to_gcs(
 
         delete_file = BashOperator(
             task_id="delete_downloaded_file",
-            # bash_command=f"rm {local_filepath}"
-            bash_command=f"echo DELETED"
+            bash_command=f"rm {local_filepath}"
+            # bash_command=f"echo DELETED"
         )
 
         create_db_if_not_exist_task = PythonOperator(
