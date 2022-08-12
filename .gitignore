@@ -2,4 +2,9 @@
 *.parquet
 .ipynb_checkpoints
 logs
+/*/.DS_Store
+airflow/dags/__pycache__/*
+airflow/dags/.DS_Store
+airflow/.DS_Store
 .DS_Store
+postgres/.DS_Store
