@@ -45,20 +45,20 @@ default_args = {
 }
 
 def create_db():
-    # try:
-    con = psycopg2.connect(
-        user=USER, 
-        host=PGHOST,
-        port=PGPORT,
-        password=PGPASSWORD)
+    try:
+        con = psycopg2.connect(
+            user=USER, 
+            host=PGHOST,
+            port=PGPORT,
+            password=PGPASSWORD)
 
-    cur = con.cursor()
-    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    cur.execute(sql.SQL(
-        f"SELECT 'CREATE DATABASE {DBNAME}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '{DBNAME}')")
-        )
-    # except Exception as e:
-    #     print(e)
+        cur = con.cursor()
+        con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        cur.execute(sql.SQL("CREATE DATABASE {}").format(
+                sql.Identifier(DBNAME))
+            )
+    except Exception as e:
+        print(e)
 
 def format_to_parquet(src_file):
     """convert csv to parquet file
@@ -76,23 +76,26 @@ def format_to_parquet(src_file):
 
 def load_to_postgres(name, path):
     df = pd.read_parquet(path)
-    connect = f'postgresql+psycopg2://{USER}:{PGPASSWORD}@{PGHOST}:{PGPORT}/{DBNAME}'
+    connect = f'postgresql+pg8000://{USER}:{PGPASSWORD}@{PGHOST}:{PGPORT}/{DBNAME}'
     print(f'\n\n{connect}\n\n')
     engine = create_engine(connect)
-    total = len(df)
-    count = 0
+    try:
+        total = len(df)
+        count = 0
 
-    while count < total:
-        start = time.time()
-        next_ = count + 50000
-        # print(count, next_)
-        write_df = df.iloc[count: next_]
-        write_df.to_sql(name=f'{name}_taxi_data', con=engine, if_exists='append', index=False)
-        count = next_
-        print(f'inserted chunk... took: {round((time.time()-start), 2)} second')
+        while count < total:
+            start = time.time()
+            next_ = count + 50000
+            # print(count, next_)
+            write_df = df.iloc[count: next_]
+            write_df.to_sql(name=f'{name}_taxi_data', con=engine, if_exists='append', index=False)
+            count = next_
+            print(f'inserted chunk... took: {round((time.time()-start), 2)} second')
+    except Exception as e:
+        print(e)
 
 
-def upload_to_gcs(bucket, object_name, local_file):
+def upload_to_gcs(name, bucket, object_name, local_file):
     """
     Ref: https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-python
     :param bucket: GCS bucket name
@@ -106,8 +109,10 @@ def upload_to_gcs(bucket, object_name, local_file):
     print(f"\n\nbucket: {bucket}, \t {local_file}\n\n")
     bucket = client.bucket(bucket)
     blob = bucket.blob(object_name)
-    blob.upload_from_filename(local_file)
-
+    if name == "zone":
+        blob.upload_from_filename(local_file.replace('.csv', '.parquet'))
+    else:
+        blob.upload_from_filename(local_file)
 
 def download_and_uplod_to_gcs(
     dag,
@@ -137,6 +142,7 @@ def download_and_uplod_to_gcs(
             task_id="local_to_gcs_task",
             python_callable=upload_to_gcs,
             op_kwargs={
+                "name": name,
                 "bucket": BUCKET,
                 "object_name": f"{gcs_filepath}",
                 "local_file": f"{local_filepath}",
@@ -149,19 +155,19 @@ def download_and_uplod_to_gcs(
             # bash_command=f"echo DELETED"
         )
 
-        create_db_if_not_exist_task = PythonOperator(
-            task_id="create_db_if_not_exist",
-            python_callable=create_db,
-        )
+        # create_db_if_not_exist_task = PythonOperator(
+        #     task_id="create_db_if_not_exist",
+        #     python_callable=create_db,
+        # )
 
-        load_to_postgres_task = PythonOperator(
-            task_id="load_to_postgres",
-            python_callable=load_to_postgres,
-            op_kwargs={
-                "name": name,
-                "path": f"{local_filepath.replace('.csv', '.parquet')}",
-            },
-        )
+        # load_to_postgres_task = PythonOperator(
+        #     task_id="load_to_postgres",
+        #     python_callable=load_to_postgres,
+        #     op_kwargs={
+        #         "name": name,
+        #         "path": f"{local_filepath.replace('.csv', '.parquet')}",
+        #     },
+        # )
         if name == 'zone':
 
             
@@ -172,9 +178,11 @@ def download_and_uplod_to_gcs(
                     "src_file": f"{local_filepath}",
                 },
             )
-            download_dataset_task >> convert_to_parquet >> [local_to_gcs_task, create_db_if_not_exist_task >> load_to_postgres_task] >> delete_file
+            # download_dataset_task >> convert_to_parquet >> [local_to_gcs_task, create_db_if_not_exist_task >> load_to_postgres_task] >> delete_file
+            download_dataset_task >> convert_to_parquet >> local_to_gcs_task >> delete_file
         else:
-            download_dataset_task >> [local_to_gcs_task, create_db_if_not_exist_task >> load_to_postgres_task] >> delete_file
+            # download_dataset_task >> [local_to_gcs_task, create_db_if_not_exist_task >> load_to_postgres_task] >> delete_file
+            download_dataset_task >> local_to_gcs_task >> delete_file
 
 
 
@@ -240,20 +248,20 @@ def create_dags(name=None, folder='trip-data', **config):
 
 globals()["yellow_taxi_dags"] = create_dags('yellow', 
                                 schedule_interval='0 3 1 * *',
-                                start_date = datetime(year=2019, month=12, day=1),
+                                start_date = datetime(year=2019, month=1, day=1),
                                 end_date = datetime(2021, 1, 1)
                                 )
 
 globals()["green_taxi_dags"] = create_dags('green', 
                                 schedule_interval='0 4 1 * *',
-                                start_date = datetime(year=2019, month=12, day=1),
+                                start_date = datetime(year=2019, month=1, day=1),
                                 end_date = datetime(2021, 1, 1)
                                 )
 
 globals()["fhv_taxi_dags"] = create_dags('fhv', 
                                 schedule_interval='0 6 1 * *',
-                                start_date = datetime(year=2019, month=12, day=1),
-                                end_date = datetime(2020, 1, 1)
+                                start_date = datetime(year=2019, month=1, day=1),
+                                end_date = datetime(2021, 1, 1)
                                 )
 
 globals()["zone_taxi_dags"] = create_dags('zone', 
