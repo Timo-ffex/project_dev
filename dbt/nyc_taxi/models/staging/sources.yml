@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: staging
+    database: nyc_taxi
+    schema: public
+    tables:
+      - name: yellow
+        identifier: yellow_taxi_data
+
