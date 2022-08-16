@@ -34,5 +34,17 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   nyc_taxi:
     # Config indicated by + and applies to all files under models/example/
-    example:
+    +materialized: view # default materialized type if not specified
+    dim: # use view materialized type for all queries in dim folder
       +materialized: view
+    src: # use view materialized type for all queries in staging folder
+      +materialized: view
+
+vars:
+  payment_type_values: [1, 2, 3, 4, 5, 6]
+
+seeds: 
+  taxi_rides_ny:
+    taxi_zone_lookup:
+      +column_types:
+          locationid: numeric
