@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: staging
+    database: nyc_taxi
+    schema: public
+    tables:
+      - name: yellow
+        identifier: yellow_taxi_data
+      - name: green
+        identifier: green_taxi_data
+
+  - name: prod
+    database: dit-dev-project
+    schema: trips_data_all
+    tables:
+      - name: yellow
+        identifier: yellow_tripdata
+      - name: green
+        identifier: green_tripdata
