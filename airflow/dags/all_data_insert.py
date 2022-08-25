@@ -27,12 +27,6 @@ PGHOST = os.environ.get('PGHOST')
 PGPORT = os.environ.get('PGPORT')
 DBNAME = os.environ.get('DBNAME')
 
-USER = 'airflow'
-PGPASSWORD = 'airflow'
-PGHOST = 'postgres'
-PGPORT = 5432
-DBNAME = 'nyc_taxi'
-
 
 AIRFLOW_HOME = os.environ.get("AIRFLOW_HOME", "/opt/airflow/")
 run_month = "{{ execution_date.strftime(\'%Y-%m\') }}"
